@@ -1,6 +1,9 @@
+/* eslint-disable no-console */
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import io from 'socket.io-client';
 import dislike from '../assets/dislike.svg';
+import itsamatch from '../assets/itsamatch.png';
 import like from '../assets/like.svg';
 import logo from '../assets/logo.svg';
 import api from '../services/api';
@@ -8,6 +11,7 @@ import './Main.css';
 
 export default function Main({ match }) {
     const [users, setUsers] = useState([]);
+    const [matchDev, setMatchDev] = useState(null);
 
     useEffect(() => {
         async function loadUser() {
@@ -17,6 +21,18 @@ export default function Main({ match }) {
             setUsers(reponse.data);
         }
         loadUser();
+    }, [match.params.id]);
+
+    useEffect(() => {
+        const socket = io('http://localhost:3333', {
+            query: { user: match.params.id }
+        });
+
+        socket.on('match', dev => {
+            setMatchDev(dev);
+        });
+
+
     }, [match.params.id]);
 
     async function handleLikes(id) {
@@ -65,8 +81,20 @@ export default function Main({ match }) {
                     ))}
                 </ul>
             ) : (
-                <div className="empty">Acabou :c</div>
+                    <div className="empty">Acabou :c</div>
+                )}
+
+            {matchDev && (
+                <div className="match-container">
+                    <img src={itsamatch} alt="" />
+
+                    <img className="avatar" src={matchDev.avatar} alt="" />
+                    <strong>{matchDev.name}</strong>
+                    <p>{matchDev.bio}</p>
+                    <button onClick={() => setMatchDev(null)} type="button">FECHAR</button>
+                </div>
             )}
         </div>
+
     );
 }
